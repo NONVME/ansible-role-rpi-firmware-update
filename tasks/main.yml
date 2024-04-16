@@ -17,10 +17,16 @@
     state: present
   with_items: "{{ raspberry_pi_rc_local_options }}"
 
-- name: Update system packages
-  apt:
+- name: ubuntu | upgrade
+  ansible.builtin.apt:
+    upgrade: full
     update_cache: true
-    upgrade: true
+    cache_valid_time: 3600
+    autoclean: true
+    autoremove: true
+  register: apt_upgrade
+  retries: 5
+  until: apt_upgrade is success
 
 - name: Install rpi-eeprom
   apt:
