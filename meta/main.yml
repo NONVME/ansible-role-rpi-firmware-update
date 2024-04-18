@@ -4,7 +4,7 @@ dependencies: []
 galaxy_info:
   role_name: rpi-firmware-update
   author: nonvme
-  description: Configures a Raspberry Pi.
+  description: Configuration for a home server
   license: "license (BSD, MIT)"
   min_ansible_version: 2.10
   platforms:
