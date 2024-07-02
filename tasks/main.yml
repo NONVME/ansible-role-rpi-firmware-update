@@ -1,12 +1,21 @@
 ---
-- name: Configure options in /boot/config.txt.
-  lineinfile:
-    dest: /boot/config.txt
-    regexp: "{{ item.regexp }}"
-    line: "{{ item.line }}"
-    insertafter: EOF
-    state: present
-  with_items: "{{ raspberry_pi_boot_config_options }}"
+# - name: Configure options in /boot/firmware/config.txt.
+#   lineinfile:
+#     dest: /boot/firmware/config.txt
+#     regexp: "{{ item.regexp }}"
+#     line: "{{ item.line }}"
+#     insertafter: EOF
+#     state: present
+#   with_items: "{{ raspberry_pi_boot_config_options }}"
+#   notify: Reboot the machine
+
+- name: Set dtoverlay parameter to vc4-fkms-v3d
+  ansible.builtin.replace:
+    path: /boot/firmware/config.txt
+    regexp: '(dtoverlay=).*'
+    replace: '\1vc4-fkms-v3d'
+    # backup: yes
+  notify: Reboot the machine
 
 - name: Configure options in /etc/rc.local.
   lineinfile:
@@ -33,8 +42,11 @@
     name: rpi-eeprom
     state: present
 
-- name: Update firmware Raspberry Pi
-  command: rpi-eeprom-update
-  become: yes
-  register: updated_firmware
+- name: Update Raspberry Pi EEPROM
+  ansible.builtin.command:
+    cmd: rpi-eeprom-update -a
+    become: yes
+  register: update_result
+  changed_when: "update_result.rc == 0 and 'already up-to-date' not in update_result.stdout"
+  failed_when: "update_result.rc != 0 and 'already up-to-date' not in update_result.stdout"
   notify: Reboot the machine
